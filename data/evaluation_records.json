@@ -1,0 +1,172 @@
+{
+  "created_at_utc": "2026-10-19T07:12:08.453217+00:00",
+  "label": "SYNTHETIC CONTROLLED DEMONSTRATION - NOT EMPIRICAL RESEARCH",
+  "question_set": [
+    "Summarize the synthetic demo company's FY2025 revenue."
+  ],
+  "corpus": [
+    {
+      "source_id": "synthetic-demo",
+      "title": "Synthetic demonstration passage",
+      "source_url": "",
+      "publisher": "Synthetic example (not a real publisher)",
+      "page": null,
+      "text": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025."
+    }
+  ],
+  "calculation_records": [],
+  "runs": [
+    {
+      "condition": "off",
+      "question": "Summarize the synthetic demo company's FY2025 revenue.",
+      "answer": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025. Synthetic demo company Alpha reported revenue of INR 999 crore for FY2025.",
+      "claims": [
+        {
+          "condition": "off",
+          "question": "Summarize the synthetic demo company's FY2025 revenue.",
+          "claim": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025.",
+          "citations": [
+            {
+              "source_id": "synthetic-demo",
+              "quote": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025."
+            }
+          ],
+          "evidence_status": "supported",
+          "blocked": false,
+          "reason": "claim text is contained in the cited extracted span"
+        },
+        {
+          "condition": "off",
+          "question": "Summarize the synthetic demo company's FY2025 revenue.",
+          "claim": "Synthetic demo company Alpha reported revenue of INR 999 crore for FY2025.",
+          "citations": [],
+          "evidence_status": "contradicted",
+          "blocked": false,
+          "reason": "retrieved passage reports a different numeric value for the same metric"
+        }
+      ],
+      "passages": [
+        {
+          "source_id": "synthetic-demo",
+          "title": "Synthetic demonstration passage",
+          "source_url": "",
+          "publisher": "Synthetic example (not a real publisher)",
+          "page": null,
+          "text": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025."
+        }
+      ],
+      "blocked_claim_count": 0
+    },
+    {
+      "condition": "on",
+      "question": "Summarize the synthetic demo company's FY2025 revenue.",
+      "answer": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025.",
+      "claims": [
+        {
+          "condition": "on",
+          "question": "Summarize the synthetic demo company's FY2025 revenue.",
+          "claim": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025.",
+          "citations": [
+            {
+              "source_id": "synthetic-demo",
+              "quote": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025."
+            }
+          ],
+          "evidence_status": "supported",
+          "blocked": false,
+          "reason": "claim text is contained in the cited extracted span"
+        },
+        {
+          "condition": "on",
+          "question": "Summarize the synthetic demo company's FY2025 revenue.",
+          "claim": "Synthetic demo company Alpha reported revenue of INR 999 crore for FY2025.",
+          "citations": [],
+          "evidence_status": "contradicted",
+          "blocked": true,
+          "reason": "retrieved passage reports a different numeric value for the same metric"
+        }
+      ],
+      "passages": [
+        {
+          "source_id": "synthetic-demo",
+          "title": "Synthetic demonstration passage",
+          "source_url": "",
+          "publisher": "Synthetic example (not a real publisher)",
+          "page": null,
+          "text": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025."
+        }
+      ],
+      "blocked_claim_count": 1
+    }
+  ],
+  "claim_records": [
+    {
+      "condition": "off",
+      "question": "Summarize the synthetic demo company's FY2025 revenue.",
+      "claim": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025.",
+      "citations": [
+        {
+          "source_id": "synthetic-demo",
+          "quote": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025."
+        }
+      ],
+      "evidence_status": "supported",
+      "blocked": false,
+      "reason": "claim text is contained in the cited extracted span"
+    },
+    {
+      "condition": "off",
+      "question": "Summarize the synthetic demo company's FY2025 revenue.",
+      "claim": "Synthetic demo company Alpha reported revenue of INR 999 crore for FY2025.",
+      "citations": [],
+      "evidence_status": "contradicted",
+      "blocked": false,
+      "reason": "retrieved passage reports a different numeric value for the same metric"
+    },
+    {
+      "condition": "on",
+      "question": "Summarize the synthetic demo company's FY2025 revenue.",
+      "claim": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025.",
+      "citations": [
+        {
+          "source_id": "synthetic-demo",
+          "quote": "Synthetic demo company Alpha reported revenue of INR 120 crore for FY2025."
+        }
+      ],
+      "evidence_status": "supported",
+      "blocked": false,
+      "reason": "claim text is contained in the cited extracted span"
+    },
+    {
+      "condition": "on",
+      "question": "Summarize the synthetic demo company's FY2025 revenue.",
+      "claim": "Synthetic demo company Alpha reported revenue of INR 999 crore for FY2025.",
+      "citations": [],
+      "evidence_status": "contradicted",
+      "blocked": true,
+      "reason": "retrieved passage reports a different numeric value for the same metric"
+    }
+  ],
+  "metrics": {
+    "off": {
+      "total_evaluated_claims": 2,
+      "hallucinated_output_claims": 1,
+      "hallucination_rate_percent": 50.0,
+      "citation_coverage_percent": 50.0,
+      "claim_support_rate_percent": 50.0,
+      "blocked_claim_count": 0
+    },
+    "on": {
+      "total_evaluated_claims": 2,
+      "hallucinated_output_claims": 0,
+      "hallucination_rate_percent": 0.0,
+      "citation_coverage_percent": 50.0,
+      "claim_support_rate_percent": 50.0,
+      "blocked_claim_count": 1
+    },
+    "comparison": {
+      "absolute_reduction_percentage_points": 50.0,
+      "relative_reduction_percent": 100.0
+    }
+  }
+}
