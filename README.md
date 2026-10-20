@@ -136,7 +136,7 @@ The deterministic calculation engine supports sourced sums and percentage change
 
 ## Register and extract a source
 
-No authentic public filing is preloaded. Register a document only when you have its real title, publisher, period, and source URL or file. `published_on` is optional and should be supplied only when verified in the document or official filing notice. For a public URL, `retrieved_at_utc` is recorded only after the fetch succeeds and the response passes content checks. Files are limited to 50 MB and supported types are PDF, TXT, Markdown, and CSV.
+The registered corpus includes Tata Steel Limited's Integrated Report and Annual Accounts 2024-25 (`source_id` `40fe520d35a1b277`), downloaded from the official Tata Steel URL and stored at `data/40fe520d35a1b277.pdf`. Its publisher, reporting period, retrieval timestamp, URL, and content hash are recorded in `sources.csv`; its publication date is blank because it was not recorded during ingestion. Register additional documents only with their real title, publisher, period, and verified source URL or file. For a public URL, `retrieved_at_utc` is recorded only after the fetch succeeds and the response passes content checks. Files are limited to 50 MB and supported types are PDF, TXT, Markdown, and CSV.
 
 ```powershell
 & 'C:\Users\kaurj\AppData\Local\Programs\Python\Python312\python.exe' ingest.py --title "Document title" --publisher "Publisher from the document" --period "FY2025" --local-path "C:\path\to\document.pdf" --url "https://issuer.example/reports/document.pdf"

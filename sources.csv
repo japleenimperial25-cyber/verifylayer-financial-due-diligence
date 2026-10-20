@@ -1,1 +1,2 @@
-source_id,title,source_url,publisher,retrieved_at_utc,recorded_at_utc,reporting_period,origin,stored_path,sha256,synthetic
+source_id,title,source_url,publisher,published_on,retrieved_at_utc,recorded_at_utc,reporting_period,origin,stored_path,sha256,synthetic
+40fe520d35a1b277,Tata Steel Integrated Report and Annual Accounts 2024-25,https://www.tatasteel.com/media/23973/fy25-integratedreport.pdf,Tata Steel Limited,,2026-10-20T10:13:03.291953+00:00,2026-10-20T10:13:01.677340+00:00,FY2024-25,url:https://www.tatasteel.com/media/23973/fy25-integratedreport.pdf,data\40fe520d35a1b277.pdf,40fe520d35a1b277e3d20eaf1c10ecc5115425f3f678145efcc7c62c28a93dfa,false
