@@ -1,69 +1,114 @@
-"""Focused Streamlit interface for the five-layer verification demonstration."""
+"""Vercel WSGI entry point for the existing VerifyLayer browser website."""
 
-try:
-    import streamlit as st
-except ImportError as exc:
-    raise SystemExit("Install dependencies with: python -m pip install -e '.[app,test]'") from exc
+import json
+from http import HTTPStatus
+from pathlib import Path
+from urllib.parse import urlsplit
 
-from commentary import DEMO_QUESTION, run_experiment, run_workflow, save_experiment
-from report import generate_report
+import website
+from commentary import DEMO_QUESTION, run_experiment, run_workflow
 
-st.set_page_config(page_title="VerifyLayer", page_icon="🔎", layout="wide")
-st.title("VerifyLayer — Citation-Grounded Verification")
-st.caption("Academic prototype. Educational use only; not investment advice or a buy/sell recommendation.")
-st.write("Enter a research question. The local demo uses explicitly synthetic text and no language model.")
-question = st.text_input("Financial research question", value=DEMO_QUESTION)
-condition = st.radio("Verification gate", ["OFF", "ON"], horizontal=True)
-mode = st.radio("Evidence corpus", ["Synthetic failure demonstration", "Registered source documents"], horizontal=True)
 
-if st.button("Run question", type="primary"):
-    synthetic_demo = mode == "Synthetic failure demonstration"
-    result = run_workflow(question, verify=condition == "ON", demo=synthetic_demo)
-    st.subheader(f"Answer — verification {condition}")
-    st.write(result["answer"])
-    st.metric("Blocked claims", result["blocked_claim_count"])
-    st.subheader("Claim review")
-    for claim in result["claims"]:
-        st.write({"claim": claim["claim"], "evidence_status": claim["evidence_status"],
-                  "blocked": claim["blocked"], "reason": claim["reason"], "citations": claim["citations"]})
-    st.subheader("Retrieved evidence")
-    for passage in result["passages"]:
-        st.write({"source": passage["title"], "source_id": passage["source_id"], "page": passage["page"],
-                  "exact_text": passage["text"], "label": "SYNTHETIC — NOT A REAL FILING" if synthetic_demo else "Registered source"})
+MAX_REQUEST_BYTES = website.MAX_REQUEST_BYTES
+CONTENT_TYPES = {
+    ".html": "text/html; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+}
 
-st.divider()
-st.subheader("Controlled OFF vs. ON evaluation")
-st.caption("Same question and same synthetic passage in both conditions. This is a failure demonstration, not empirical research.")
-if st.button("Run evaluation and save records"):
-    experiment = run_experiment([question or DEMO_QUESTION])
-    path = save_experiment(experiment)
-    st.session_state["experiment"] = experiment
-    st.success(f"Saved claim-level records to {path.relative_to(path.parents[1])}")
 
-experiment = st.session_state.get("experiment")
-if experiment:
-    metrics = experiment["metrics"]
-    first, second = st.columns(2)
-    for column, key, run in ((first, "off", experiment["runs"][0]), (second, "on", experiment["runs"][1])):
-        with column:
-            st.markdown(f"**Verification {key.upper()}**")
-            st.json(metrics[key])
-            st.write("Generated answer:", run["answer"])
-            st.write("Claim decisions:", [{"claim": item["claim"], "status": item["evidence_status"],
-                                           "blocked": item["blocked"], "reason": item["reason"]}
-                                          for item in run["claims"]])
-    st.write("Reduction (percentage points):", metrics["comparison"]["absolute_reduction_percentage_points"])
-    st.write("Relative reduction (%; undefined when OFF is zero):", metrics["comparison"]["relative_reduction_percent"])
-    st.write("Blocked-claim reasons are preserved in the claim-level records above and in `data/evaluation_records.json`.")
-    if st.button("Generate report annexure"):
-        report_path = generate_report()
-        st.success(f"Report generated: {report_path.relative_to(report_path.parents[1])}")
-        st.download_button("Download report", report_path.read_text(encoding="utf-8"), file_name=report_path.name)
+def _json_response(value: dict, status: int = 200) -> tuple[int, str, bytes]:
+    return status, "application/json; charset=utf-8", json.dumps(value, ensure_ascii=False).encode("utf-8")
 
-st.divider()
-st.subheader("Five layers")
-st.write("L1 Ingest — local files or explicitly supplied public URLs, recorded in `sources.csv`.")
-st.write("L2 Extract — paragraph extraction and local lexical retrieval with source identifiers and page locations when available.")
-st.write("L3 Engine — deterministic Decimal arithmetic; no language model performs calculations.")
-st.write("L4 Commentary and verification — claim-level citation checks, reasons, and blocking.")
-st.write("L5 Output — this interface and a Markdown annexure generated from saved evaluation records.")
+
+def _dispatch(method: str, path: str, environ: dict) -> tuple[int, str, bytes]:
+    """Dispatch the same site pages and API operations used by website.py."""
+    if method == "GET":
+        if path == "/api/dashboard":
+            return _json_response(website.dashboard_data())
+        if path == "/api/sources":
+            return _json_response({"sources": website._sources()})
+        if path == "/api/evaluation":
+            records = website._read_json(website.ROOT / "data" / "evaluation_records.json")
+            questions = records.get("question_set") or [DEMO_QUESTION]
+            if str(records.get("label", "")).startswith("SYNTHETIC CONTROLLED DEMONSTRATION"):
+                result = run_experiment(questions)
+            else:
+                result = run_experiment(questions, corpus=records.get("corpus") or [])
+            return _json_response(result)
+        if path == "/api/report":
+            return 200, "text/markdown; charset=utf-8", (website.ROOT / "data" / "evaluation_report.md").read_bytes()
+        if path == "/api/records":
+            return 200, "application/json; charset=utf-8", (website.ROOT / "data" / "evaluation_records.json").read_bytes()
+        if path == "/api/governance":
+            return 200, "text/markdown; charset=utf-8", (website.ROOT / "governance.md").read_bytes()
+
+        relative = "index.html" if path == "/" else path.lstrip("/")
+        if relative not in website.STATIC_ASSETS:
+            return _json_response({"error": "Not found"}, 404)
+        target = (website.WEB / relative).resolve()
+        if website.WEB.resolve() not in target.parents or not target.is_file():
+            return _json_response({"error": "Not found"}, 404)
+        return 200, CONTENT_TYPES[target.suffix], target.read_bytes()
+
+    if method != "POST" or path != "/api/research":
+        return _json_response({"error": "Not found"}, 404)
+
+    if environ.get("CONTENT_TYPE", "").split(";", 1)[0].strip().lower() != "application/json":
+        return _json_response({"error": "Content-Type must be application/json."}, 415)
+    try:
+        length = int(environ.get("CONTENT_LENGTH") or "0")
+    except (TypeError, ValueError):
+        return _json_response({"error": "Invalid Content-Length header."}, 400)
+    if length < 0:
+        return _json_response({"error": "Invalid Content-Length header."}, 400)
+    if length > MAX_REQUEST_BYTES:
+        return _json_response({"error": "Request body is too large."}, 413)
+    try:
+        payload = json.loads(environ["wsgi.input"].read(length))
+        if not isinstance(payload, dict):
+            raise ValueError("Request body must be a JSON object.")
+        question = payload.get("question", "")
+        if not isinstance(question, str):
+            raise ValueError("Question must be text.")
+        question = question.strip()
+        if not question:
+            raise ValueError("Enter a research question.")
+        if len(question) > 2000:
+            raise ValueError("Question must be 2,000 characters or fewer.")
+        verify = payload.get("verify", True)
+        if not isinstance(verify, bool):
+            raise ValueError("Verification mode must be true or false.")
+        mode = payload.get("mode", "registered")
+        if mode not in {"registered", "synthetic"}:
+            raise ValueError("Mode must be 'registered' or 'synthetic'.")
+    except (KeyError, ValueError, json.JSONDecodeError) as exc:
+        return _json_response({"error": str(exc)}, 400)
+
+    try:
+        return _json_response(run_workflow(question, verify=verify, demo=mode == "synthetic"))
+    except Exception:
+        return _json_response({"error": "The research workflow could not complete."}, 500)
+
+
+def application(environ: dict, start_response) -> list[bytes]:
+    """WSGI callable supported by Vercel's Python runtime."""
+    method = environ.get("REQUEST_METHOD", "GET").upper()
+    path = urlsplit(environ.get("PATH_INFO", "/")).path
+    try:
+        status, content_type, body = _dispatch(method, path, environ)
+    except Exception:
+        status, content_type, body = _json_response(
+            {"error": "Unable to load the requested VerifyLayer resource."}, 500
+        )
+    reason = HTTPStatus(status).phrase
+    start_response(f"{status} {reason}", [
+        ("Content-Type", content_type),
+        ("Content-Length", str(len(body))),
+        ("Cache-Control", "no-store"),
+    ])
+    return [body]
+
+
+# Vercel recognizes a top-level WSGI variable named `app` or `application`.
+app = application
