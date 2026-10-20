@@ -33,8 +33,10 @@ def extract_registered(source_id: str) -> list[dict[str, Any]]:
 
 
 def _passages(source: dict[str, str], text: str, page: int | None) -> list[dict[str, Any]]:
-    return [{"source_id": source["source_id"], "title": source["title"], "source_url": source["source_url"],
-             "publisher": source["publisher"], "page": page, "text": paragraph.strip()}
+    provenance_fields = ("published_on", "retrieved_at_utc", "recorded_at_utc", "reporting_period", "origin", "stored_path", "sha256", "synthetic")
+    provenance = {field: source.get(field, "") for field in provenance_fields}
+    return [{"source_id": source["source_id"], "title": source["title"], "source_url": source.get("source_url", ""),
+             "publisher": source.get("publisher", ""), **provenance, "page": page, "text": paragraph.strip()}
             for paragraph in re.split(r"\n\s*\n", text) if paragraph.strip()]
 
 

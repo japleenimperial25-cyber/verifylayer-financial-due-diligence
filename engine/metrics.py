@@ -13,10 +13,16 @@ def calculate_metrics(records: list[dict]) -> dict:
         total = len(claims)
         cited = sum(bool(claim.get("citations")) for claim in claims)
         supported = sum(claim["evidence_status"] == "supported" for claim in claims)
+        unsupported = sum(claim["evidence_status"] == "unsupported" for claim in claims)
+        contradicted = sum(claim["evidence_status"] == "contradicted" for claim in claims)
         hallucinated_output = sum(claim["evidence_status"] in {"unsupported", "contradicted"} and not claim.get("blocked") for claim in claims)
         blocked = sum(bool(claim.get("blocked")) for claim in claims)
         result[condition] = {
             "total_evaluated_claims": total,
+            "cited_claim_count": cited,
+            "supported_claim_count": supported,
+            "unsupported_claim_count": unsupported,
+            "contradicted_claim_count": contradicted,
             "hallucinated_output_claims": hallucinated_output,
             "hallucination_rate_percent": _rate(hallucinated_output, total),
             "citation_coverage_percent": _rate(cited, total),

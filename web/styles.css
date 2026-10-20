@@ -6,3 +6,4 @@
 .empty-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
 .metric-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.demo-control{border-top:1px solid #e4ebe7;margin-top:20px;padding-top:16px}.demo-control p{color:#66766f;margin:6px 0 12px;font-size:13px}.demo-control .button{min-height:40px}#source-ids{min-width:220px;max-width:100%;min-height:100px;padding:8px;border:1px solid #cbd8d1;border-radius:8px;background:#fff;color:#173d35}#source-selection-hint{display:block;max-width:280px;color:#66766f;font-size:11px;margin-top:5px}

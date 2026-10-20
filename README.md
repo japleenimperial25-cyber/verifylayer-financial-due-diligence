@@ -1,53 +1,180 @@
 # VerifyLayer — Citation-Grounded Verification
 
+**Project:** AI-Powered Investment Verification & Due Diligence: Evidence Behind Every Investment Decision
 **Researchers:** Rashmi Sanjay Chate and Japleen Kaur
-
 **Research question:** How much does a mandatory citation layer reduce hallucination in financial research output?
 
-VerifyLayer is an academic capstone prototype that records document provenance, extracts and retrieves source passages, performs deterministic financial arithmetic, checks claim support, and presents an OFF/ON verification demonstration.
+VerifyLayer is an academic prototype that records document provenance, extracts and retrieves source passages, performs deterministic financial arithmetic, checks claim support, and demonstrates a verification gate. Python is the source of truth for retrieval, verification, calculations, and evaluation.
 
 ## Five-layer architecture
 
-1. **L1 Ingest** — `ingest.py` registers a local document or fetches a user-supplied public URL. Successful inputs are stored under `data/` and recorded in `sources.csv` with title, URL, publisher, actual UTC retrieval time for URL fetches, recording time, period, origin, and digest. The initial registry is empty.
-2. **L2 Extract** — `extract.py` extracts paragraphs from TXT, Markdown, CSV, or PDF. `rag/` retrieves passages with deterministic lexical overlap and preserves source IDs and PDF pages where available.
-3. **L3 Engine** — `engine/` performs Decimal summation and percentage change from explicit sourced inputs and calculates evaluation measures. Financial mathematics stays outside any language model.
-4. **L4 Commentary and verification** — `commentary.py` checks exact cited spans, labels unsupported/contradicted claims, blocks claims when enabled, and retains claim-level records.
-5. **L5 Output** — `app.py` provides the Streamlit interface. `report.py` generates a Markdown annexure from saved evaluation records.
+1. **L1 Ingest** — `ingest.py` registers an explicit local document or fetches a supplied public URL. Successful inputs are recorded in `sources.csv` with source ID, actual URL when fetched, publisher, supplied publication date when known, successful retrieval time, reporting period, storage path, and content digest. Unsupported/invalid files and failed downloads are rejected.
+2. **L2 Extract** — `extract.py` extracts paragraphs from TXT, Markdown, CSV, or PDF. `rag/` performs deterministic lexical retrieval and preserves source IDs and PDF page references where available.
+3. **L3 Engine** — `engine/` performs sourced `Decimal` summation, percentage change, margins, same-period ratios, and evaluation metrics in Python.
+4. **L4 Commentary and verification** — `commentary.py` uses the optional server-side model to select exact source claims and candidate inputs, then checks citations and uses Python calculations. Unsupported model claims are blocked or excluded from the answer.
+5. **L5 Output** — `website.py` serves the responsive browser website and API using Python's standard library. `report.py` generates the Markdown evaluation annexure from saved records.
 
-## Install on Windows
+The frontend uses local HTML, CSS, inline SVG icons, and vanilla JavaScript. It has no frontend build step, external font CDN, or JavaScript financial-verification implementation.
 
-From PowerShell in the repository directory:
+## Start the website on Windows
 
-```powershell
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e '.[app,test]'
-```
+Do **not** open `web/index.html` directly. Its API and assets require the local HTTPS server. In PowerShell, change to the repository directory and start the server:
 
-## Run
+The server is HTTPS-only and binds to `127.0.0.1:8443`. It requires a local mkcert certificate and key; it does not fall back to HTTP. Install mkcert by following its official Windows instructions, then run `mkcert -install` only if you have not already trusted mkcert's local development CA. This changes this computer's certificate trust store and may require administrator approval. Generate the certificate in the same Windows user environment and mkcert installation where the CA trust setup was completed.
+
+From the repository root, generate the certificate (the command refuses overwriting existing certificate files):
 
 ```powershell
-streamlit run app.py
+if (!(Test-Path local-dev-certs)) { New-Item -ItemType Directory local-dev-certs }; if ((Test-Path local-dev-certs\verifylayer.pem) -or (Test-Path local-dev-certs\verifylayer-key.pem)) { throw 'Target certificate file exists; inspect it first' }
+& 'C:\Users\kaurj\AppData\Local\Microsoft\WinGet\Packages\FiloSottile.mkcert_Microsoft.Winget.Source_8wekyb3d8bbwe\mkcert.exe' -cert-file local-dev-certs\verifylayer.pem -key-file local-dev-certs\verifylayer-key.pem localhost 127.0.0.1
 ```
 
-Use **Run question** to inspect OFF or ON results. Use **Run evaluation and save records** to execute both conditions on the same synthetic question and corpus. Use **Generate report annexure** after evaluation, or run `python report.py` after records exist.
-
-To register a local document:
+The certificate and private key are stored in `local-dev-certs/`, which is excluded from Git. Do not share or commit the private key. To launch directly:
 
 ```powershell
-python ingest.py --title "Document title" --publisher "Publisher from the document" --period "FY2025" --local-path "C:\path\to\document.pdf"
+Set-Location 'C:\Users\kaurj\OneDrive\Desktop\verifylayer-work\verifylayer-financial-due-diligence'
+& 'C:\Users\kaurj\AppData\Local\Programs\Python\Python312\python.exe' website.py
 ```
 
-To fetch a known public filing URL (only after supplying a verified URL and publisher):
+Then open [https://localhost:8443](https://localhost:8443). Keep the terminal open; press `Ctrl+C` to stop. Alternatively, run `run_website.bat`, which starts the HTTPS server and opens the browser URL. If Chrome still warns, confirm mkcert's CA is trusted by the Windows user/browser certificate store and that the certificate was generated by that same CA. The application does not bypass certificate validation. A certificate generated in a different sandbox or user profile is signed by a different CA and will not be trusted by Chrome on this Windows account.
+
+To remove the local certificate and key, stop the server and delete `local-dev-certs/`. To remove mkcert's local CA trust, use `mkcert -uninstall`; this removes the local development CA from the trust store.
+
+When opened through `file://`, the HTML shows a notice with the correct server workflow instead of appearing as an unstyled, nonfunctional page. If the page reports that the Python backend cannot be reached, confirm the server terminal is still running and that the URL is opened from the same computer/session.
+
+## Optional Vercel deployment
+
+The repository includes a Vercel WSGI entry point in `app.py`. It serves the same local HTML/CSS/JavaScript website and calls the existing Python retrieval, verification, and evaluation functions. `vercel.json` includes the website assets, source registry, saved evaluation records, report, and governance file in the Python function bundle. Deploy the repository root as the Vercel project root; no `app.py` Streamlit entry point or extra web framework is required. The Vercel Python runtime is currently documented as Beta by Vercel.
+
+After the changes are committed and pushed to the connected branch, trigger a redeployment in Vercel. Do not add local HTTPS certificates or private keys to the deployment; Vercel terminates public HTTPS itself. The deployed endpoint is public, so use only public or synthetic materials and do not submit confidential diligence questions or documents. The current evaluation remains synthetic controlled data, not empirical evidence.
+
+## Website sections
+
+- **Dashboard:** reads source count and saved evaluation status/metrics from the Python backend.
+- **Research:** submits a question and an explicit list of registered source IDs to `commentary.run_workflow`; retrieval excludes synthetic registry rows, constrains named companies against source title/publisher metadata, and filters requested metric, period, and unit terms. When configured, the model selects source-quoted statements and candidate calculation inputs; the final answer includes only verifier-supported quotes and Python calculations. Missing matches are reported as insufficient evidence. Entity and metric parsing is heuristic, so review the displayed context.
+- **Answer generation:** if configured, the server-side OpenAI-compatible model selects verbatim evidence claims and candidate sourced inputs. VerifyLayer ignores free-form model prose; the returned factual answer is assembled only from claims that pass the existing exact-quote verifier and Python-calculated results. A missing key or provider outage leaves a labeled source-excerpt fallback and a setup/error notice.
+- **Synthetic demonstration:** a separate fixed-question button runs the controlled Alpha example. The research API rejects synthetic mode for any other question so its fictional values cannot answer real-company queries.
+- **Evidence verification:** shows each returned claim, its decision/reason, citation text, source ID and retrieved passage. An empty registered-source corpus produces an explicit insufficient-evidence result.
+- **OFF vs ON evaluation:** reruns the saved question set through `commentary.run_experiment` and Python's `engine.metrics`; both conditions share the same source evidence. Metrics and comparison values come from backend output, including undefined cases.
+- **Sources:** displays actual `sources.csv` records, or a clear empty state when there are no registered documents.
+- **Reports:** links to the existing Markdown report, saved JSON evaluation records, and governance document. The website serves only these approved report artifacts.
+
+## API and static assets
+
+The server binds only to `127.0.0.1:8443` and serves HTTPS.
+
+| Route | Purpose |
+|---|---|
+| `/` | Website HTML |
+| `/styles.css`, `/app.js` | Approved local frontend assets |
+| `GET /api/dashboard` | Project overview and saved metrics |
+| `POST /api/research` | Existing retrieval and claim-verification workflow (JSON) |
+| `GET /api/evaluation` | Recomputed OFF/ON experiment on the saved question set |
+| `GET /api/sources` | Actual source registry records |
+| `GET /api/report` | Saved Markdown evaluation annexure |
+| `GET /api/records` | Saved evaluation records JSON |
+| `GET /api/governance` | Governance documentation |
+
+Research requests use JSON such as `{"question":"What evidence is available?","verify":true,"mode":"registered","source_ids":["source-id-from-sources.csv"]}`. `source_ids` is optional: omission selects all registered sources and an empty list selects none. Normal research uses `registered` mode. `synthetic` mode accepts only the fixed synthetic-demo question; the website keeps it separate from company research. Verification is a JSON boolean. Invalid inputs receive a 4xx response. Server-side failures return a generic response without Python tracebacks.
+
+The current repository has no configured live financial-data/search provider, persistence service, or LLM credentials. Vercel uses the Python WSGI function at `app.py`; static assets and source files are bundled from the repository. Research operates only on registered files bundled with a deployment. Serverless local storage is not a persistent document-upload service, and the website has no upload endpoint. Register documents locally and redeploy them as part of the source bundle, or configure a persistent provider/storage service before claiming live or user-uploaded coverage. The model environment variables described below are optional and are not configured in the current deployment.
+
+### Optional server-side answer model
+
+The backend supports OpenAI-compatible Chat Completions through Python's standard library; no new package is required. You can use a remote HTTPS provider with a server-side API key, or a local Ollama server without a paid API key. Credentials are read only by the Python server and are never sent to the browser. Without the required provider settings, research still shows registered evidence excerpts but does not claim model-generated synthesis.
+
+When enabled, retrieved passage text is sent to the configured model provider for claim selection and input extraction. Use only documents appropriate to share with that provider; the model's free-form prose is discarded and each retained claim/input is checked against the local source passage.
+
+Required settings for a remote provider:
+
+- `OPENAI_API_KEY` — secret API key for the remote provider.
+- `VERIFYLAYER_LLM_MODEL` — a model identifier available to that API account.
+
+Optional:
+
+- `OPENAI_BASE_URL` — HTTPS base URL for an OpenAI-compatible service. Omit it to use `https://api.openai.com/v1`.
+
+### Use Ollama locally (no paid API key)
+
+Ollama's local OpenAI-compatible API uses `http://localhost:11434/v1`. VerifyLayer permits plain HTTP only for loopback hosts (`localhost`, `127.0.0.1`, or `::1`); remote providers still require HTTPS and an API key. For Ollama, set `OPENAI_BASE_URL` and `VERIFYLAYER_LLM_MODEL`; do not set an API key. The code omits the Authorization header for local Ollama, even if an OpenAI key happens to be present in the terminal environment. Ollama documents JSON mode support for its `/v1/chat/completions` endpoint; if an older server/model rejects JSON mode, VerifyLayer reports that error and does not retry without structured output.
+
+In PowerShell:
 
 ```powershell
-python ingest.py --title "Document title" --publisher "Publisher" --period "FY2025" --url "https://verified.example/document.pdf"
+ollama pull llama3.2:3b
+ollama list
+$env:OPENAI_BASE_URL = 'http://localhost:11434/v1'
+$env:VERIFYLAYER_LLM_MODEL = 'llama3.2:3b'
+$env:VERIFYLAYER_LLM_TIMEOUT_SECONDS = '180'
+Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+Set-Location 'C:\Users\kaurj\OneDrive\Desktop\verifylayer-work\verifylayer-financial-due-diligence'
+& 'C:\Users\kaurj\AppData\Local\Programs\Python\Python312\python.exe' website.py
 ```
 
-No source is preloaded. A source is recorded only after registration/fetch succeeds. Extract a registered source with `python extract.py <source_id>`.
+Local model generation defaults to a 180-second provider timeout to allow Ollama to process retrieved passages. Set `VERIFYLAYER_LLM_TIMEOUT_SECONDS` to a whole number from 10 through 600 to change it for the current server session. For Ollama, VerifyLayer sends at most three query-relevant excerpts of 700 characters each and limits generated output to 600 tokens; exact-quote checks still run against the full retrieved passages. This keeps the prompt smaller for local models with limited context windows. The research page reads the timeout setting from the Python dashboard and waits 60 seconds longer than the provider timeout for PDF extraction, retrieval, and response serialization. Other page/API requests retain their short browser timeout. A timed-out or failed model request is reported as an answer-generation error; VerifyLayer does not retry with unstructured output, and its existing verified-evidence fallback remains in place.
 
-## Limitations and research status
+The Research page reports whether the running Python process has model settings. Each research response separately reports whether the request was attempted and a provider response was received; configured settings do not prove that Ollama is reachable. If Ollama responds with an empty claims list despite retrieved evidence, the page identifies the model abstention and keeps the answer withheld. The prompt explicitly directs the model to quote relevant table rows together with available column headings, but the exact-quote verifier remains authoritative.
 
-No A1, A2, A7, or A9 course artifacts, attached capstone file, public financial filing, or empirical claim labels were present in the inspected repository. The demo corpus and example claims are synthetic and clearly labelled; there is no connected LLM. The OFF/ON run demonstrates deterministic claim blocking but is **not evidence of real-world hallucination reduction**. Retrieval is lexical; verification uses conservative exact-span and simple numeric-conflict rules, not semantic entailment or complete contradiction detection. See [governance.md](governance.md).
+Ollama usually runs as a background Windows service after installation. If it is not running, start `ollama serve` in a separate PowerShell window; do not start a second server if the Ollama app is already serving requests. Open [https://localhost:8443](https://localhost:8443), choose the registered Tata Steel source, and ask: `What were Tata Steel's FY2024-25 revenue from operations and financial results?` The server sends retrieved passages to the local model. Existing Python claim validation and calculations remain authoritative.
 
-Educational prototype only. It does not produce investment recommendations or financial advice.
+### Use a remote OpenAI-compatible provider
+
+For local PowerShell, set these only for the current terminal session, then start the existing HTTPS server:
+
+```powershell
+$secret = Read-Host "OpenAI API key" -AsSecureString
+$env:OPENAI_API_KEY = [System.Net.NetworkCredential]::new("", $secret).Password
+$env:VERIFYLAYER_LLM_MODEL = "<model-id-enabled-for-your-account>"
+& 'C:\Users\kaurj\AppData\Local\Programs\Python\Python312\python.exe' website.py
+```
+
+For Vercel, add `OPENAI_API_KEY` and `VERIFYLAYER_LLM_MODEL` under the project's **Settings → Environment Variables** for the Production environment, save them, and redeploy. Add `OPENAI_BASE_URL` only when using an HTTPS-compatible endpoint. Do not put API keys in `.env` files tracked by Git, frontend code, or public client variables. This repository's deployment has not been updated or tested with live credentials.
+
+The deployed research endpoint is public and currently has no per-user authentication or persistent rate limiter. Enabling a paid model key may allow public callers to incur usage. Protect the endpoint or configure provider/project spend limits before enabling a paid key on an unrestricted deployment.
+
+The deterministic calculation engine supports sourced sums and percentage change, plus the added sourced margin and same-period ratio operations. Model-proposed inputs are rejected unless their value, metric, unit, period, and quote can be traced to retrieved passages. DCF, WACC, forecasting, and sensitivity calculations are not implemented; the model must report required missing assumptions instead of presenting a valuation.
+
+## Register and extract a source
+
+No authentic public filing is preloaded. Register a document only when you have its real title, publisher, period, and source URL or file. `published_on` is optional and should be supplied only when verified in the document or official filing notice. For a public URL, `retrieved_at_utc` is recorded only after the fetch succeeds and the response passes content checks. Files are limited to 50 MB and supported types are PDF, TXT, Markdown, and CSV.
+
+```powershell
+& 'C:\Users\kaurj\AppData\Local\Programs\Python\Python312\python.exe' ingest.py --title "Document title" --publisher "Publisher from the document" --period "FY2025" --local-path "C:\path\to\document.pdf" --url "https://issuer.example/reports/document.pdf"
+& 'C:\Users\kaurj\AppData\Local\Programs\Python\Python312\python.exe' extract.py <source_id>
+```
+
+To fetch a known public filing, verify the URL and publisher on the issuer or official exchange site first and use `--url`. If you already have the authentic file locally, you may pass both `--local-path` and `--url`; VerifyLayer records the URL as provenance but correctly leaves `retrieved_at_utc` blank because it did not fetch that file. Example official issuer source: [Reliance Industries Integrated Annual Report 2024-25](https://www.ril.com/ar2024-25/pdf/RIL-Integrated-Annual-Report-2024-25.pdf). This command is a user-run example; no Reliance source record is included unless the fetch succeeds on your machine:
+
+```powershell
+& 'C:\Users\kaurj\AppData\Local\Programs\Python\Python312\python.exe' ingest.py --title "Reliance Industries Limited Integrated Annual Report 2024-25" --publisher "Reliance Industries Limited" --period "FY2024-25" --url "https://www.ril.com/ar2024-25/pdf/RIL-Integrated-Annual-Report-2024-25.pdf"
+```
+
+No publication date is passed in this example because the source's report issue date was not independently confirmed in the ingestion runtime. The compliance audit's Python runtime could not resolve `www.ril.com`; it did not download a document or add a source row. If network access is unavailable, use `--local-path` with a user-supplied authentic public document and add `--url` only when its public URL is verified. PDF extraction requires `pypdf`; TXT, Markdown, and CSV extraction use Python's standard library.
+
+## Evaluation and report generation
+
+Open **OFF vs ON evaluation** in the website to rerun the existing saved question set and calculate both conditions through the Python functions. Viewing this page does not overwrite `data/evaluation_records.json`.
+
+To regenerate the Markdown annexure from the saved records:
+
+```powershell
+& 'C:\Users\kaurj\AppData\Local\Programs\Python\Python312\python.exe' report.py
+```
+
+## Tests
+
+Run the existing and website route/integration tests with the confirmed Python executable:
+
+```powershell
+& 'C:\Users\kaurj\AppData\Local\Programs\Python\Python312\python.exe' -m pytest -q
+```
+
+The suite needs `pytest` (the optional `test` extra in `pyproject.toml`). Website route tests exercise the handler in-process; an environment that blocks TCP connections may still prevent an HTTP/browser smoke test.
+
+## Research status, governance, and intended use
+
+The checked-in evaluation is labeled **SYNTHETIC CONTROLLED DEMONSTRATION — NOT EMPIRICAL RESEARCH**. It uses a synthetic company and passage; it is not a public filing, an LLM experiment, or evidence of real-world hallucination reduction. No live LLM is connected. OFF/ON metrics demonstrate deterministic claim blocking under this rule-based example only. Retrieval is lexical; citation support uses conservative exact-span checks and simple numeric-conflict rules, not semantic entailment or complete contradiction detection.
+
+Read [governance.md](governance.md) for intended use, method assumptions, metric definitions, and data limitations. Verify all source filings and calculations independently. VerifyLayer is an educational prototype, not investment research, investment advice, or a buy/sell recommendation.
+
+See [COMPLIANCE_MATRIX.md](COMPLIANCE_MATRIX.md) for the ten-rule/five-layer audit and [VIVA_DEMO.md](VIVA_DEMO.md) for a timed three-minute demonstration script. A1, A2, A7, and A9 course artifacts were not present in the inspected repository and have not been recreated.

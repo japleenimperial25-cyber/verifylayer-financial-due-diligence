@@ -66,6 +66,13 @@ def test_frontend_has_http_assets_file_open_notice_and_no_remote_font_dependency
     assert 'Calculated chart unavailable:' in script_text
     assert "Evidence passages" in script_text
     assert "SYNTHETIC — NOT A REAL FILING" in script_text
+    assert "providerTimeout + 60" in script_text
+    assert "may take up to ${providerTimeout} seconds" in script_text
+    assert 'id="research-provider-status"' in html
+    assert "The Python server has answer-model settings" in script_text
+    assert "Provider request completed." in script_text
+    assert "response_received" in script_text
+    assert "No live search or language model is connected." not in html
 
 
 def test_dashboard_api_reads_project_records_and_empty_registry(monkeypatch, tmp_path):
@@ -76,6 +83,7 @@ def test_dashboard_api_reads_project_records_and_empty_registry(monkeypatch, tmp
     assert dashboard["evaluation"]["label"] == experiment["label"]
     assert dashboard["evaluation"]["question_count"] == 1
     assert dashboard["evaluation"]["metrics"] == experiment["metrics"]
+    assert dashboard["research_timeout_seconds"] == 180
     assert sources["sources"] == []
 
 
@@ -102,6 +110,32 @@ def test_registered_mode_returns_insufficient_evidence_when_retrieval_is_empty(m
     assert response["json"]["passages"] == []
     assert response["json"]["claims"] == []
     assert response["json"]["answer"] == "No factual claim passed verification; answer withheld."
+
+
+def test_research_api_reports_model_abstention_when_evidence_was_retrieved(monkeypatch, tmp_path):
+    _project(tmp_path, monkeypatch)
+    passages = [
+        {"source_id": "issuer-test", "title": "Annual report test fixture", "publisher": "Example Limited",
+         "page": 120 + index, "text": f"Financial results passage {index}: revenue from operations."}
+        for index in range(5)
+    ]
+    empty_proposal = {"status": "insufficient", "answer": "", "claims": [], "calculations": [],
+                      "missing_evidence": ["No exact claim selected."], "limitations": [],
+                      "clarification_question": ""}
+    monkeypatch.setattr("commentary.retrieve", lambda _question: passages)
+    monkeypatch.setattr("commentary.generate_proposal", lambda _question, _passages: empty_proposal)
+    response = _request(monkeypatch, "POST", "/api/research", {
+        "question": "What does the report say about revenue from operations?", "verify": True, "mode": "registered"
+    })
+    result = response["json"]
+    assert response["status"] == 200
+    assert len(result["passages"]) == 5
+    assert result["generation_status"] == "generated"
+    assert result["provider_status"]["request_attempted"] is True
+    assert result["provider_status"]["response_received"] is True
+    assert result["proposed_claim_count"] == 0
+    assert result["answer_status"] == "insufficient"
+    assert "model responded in JSON" in result["generation_note"]
 
 
 def test_evaluation_recomputes_same_question_and_shared_passages(monkeypatch, tmp_path):

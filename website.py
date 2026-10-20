@@ -8,6 +8,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from commentary import DEMO_QUESTION, run_experiment, run_workflow
+from answering import provider_is_configured, provider_timeout_seconds
 
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
@@ -29,6 +30,21 @@ def _sources() -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def _selected_source_ids(payload: dict) -> list[str] | None:
+    """Validate explicit corpus selection; None means all registered documents."""
+    if "source_ids" not in payload:
+        return None
+    source_ids = payload["source_ids"]
+    if not isinstance(source_ids, list) or any(not isinstance(item, str) for item in source_ids):
+        raise ValueError("source_ids must be a list of registered source IDs.")
+    known = {source.get("source_id") for source in _sources()}
+    if any(item not in known for item in source_ids):
+        raise ValueError("source_ids contains an unknown registered source ID.")
+    if len(source_ids) != len(set(source_ids)):
+        raise ValueError("source_ids must not contain duplicates.")
+    return source_ids
+
+
 def dashboard_data() -> dict:
     records_path = ROOT / "data" / "evaluation_records.json"
     records = _read_json(records_path) if records_path.exists() else None
@@ -46,11 +62,17 @@ def dashboard_data() -> dict:
         } if records else None),
         "report_available": (ROOT / "data" / "evaluation_report.md").exists(),
         "governance_available": (ROOT / "governance.md").exists(),
+        "answer_generation_configured": provider_is_configured(),
+        "research_timeout_seconds": provider_timeout_seconds(),
         "research_status": (
-            "Synthetic data is included; this is not empirical research. No live LLM is connected."
+            "Synthetic data is included; this is not empirical research. Model credentials are configured; connectivity is checked per request. No live financial-data provider is configured."
+            if records and "SYNTHETIC" in str(records.get("label", "")) and provider_is_configured() else
+            "Synthetic data is included; this is not empirical research. No model credentials or live financial-data provider are configured."
             if records and "SYNTHETIC" in str(records.get("label", "")) else
-            "Local corpus rule-based evaluation; not an LLM empirical study. No live LLM is connected."
-            if records else "No saved evaluation record is available. No live LLM is connected."
+            "Model credentials are configured; connectivity is checked per request. No live financial-data provider is configured."
+            if provider_is_configured() else
+            "No model credentials or live financial-data provider are configured."
+            if records else "No saved evaluation record is available. No model credentials or live financial-data provider are configured."
         ),
     }
 
@@ -143,8 +165,9 @@ class VerifyLayerHandler(BaseHTTPRequestHandler):
             mode = payload.get("mode", "registered")
             if not isinstance(mode, str) or mode not in {"registered", "synthetic"}:
                 raise ValueError("Mode must be 'registered' or 'synthetic'.")
+            source_ids = _selected_source_ids(payload)
             demo = mode == "synthetic"
-            result = run_workflow(question, verify=verify, demo=demo)
+            result = run_workflow(question, verify=verify, source_ids=source_ids, demo=demo)
             self._json(result)
         except (ValueError, json.JSONDecodeError) as exc:
             self._json({"error": str(exc)}, 400)

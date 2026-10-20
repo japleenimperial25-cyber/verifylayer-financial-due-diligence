@@ -33,6 +33,16 @@ class FinancialValue:
     value: Decimal
     unit: str
     period: str | None = None
+    source_id: str | None = None
+    quote: str | None = None
+
+
+@dataclass(frozen=True)
+class FinancialCalculation:
+    value: Decimal
+    unit: str
+    period: str
+    inputs: tuple[FinancialValue, ...]
 
 
 @dataclass(frozen=True)

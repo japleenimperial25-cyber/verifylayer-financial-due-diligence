@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 dependencies = []
 
 [project.optional-dependencies]
-app = ["streamlit>=1.32", "pypdf>=4"]
+pdf = ["pypdf>=4"]
 test = ["pytest>=8"]
 
 [tool.setuptools.packages.find]

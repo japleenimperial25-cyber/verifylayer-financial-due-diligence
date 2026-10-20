@@ -80,13 +80,16 @@ def _dispatch(method: str, path: str, environ: dict) -> tuple[int, str, bytes]:
         if not isinstance(verify, bool):
             raise ValueError("Verification mode must be true or false.")
         mode = payload.get("mode", "registered")
-        if mode not in {"registered", "synthetic"}:
+        if not isinstance(mode, str) or mode not in {"registered", "synthetic"}:
             raise ValueError("Mode must be 'registered' or 'synthetic'.")
+        source_ids = website._selected_source_ids(payload)
     except (KeyError, ValueError, json.JSONDecodeError) as exc:
         return _json_response({"error": str(exc)}, 400)
 
     try:
-        return _json_response(run_workflow(question, verify=verify, demo=mode == "synthetic"))
+        return _json_response(run_workflow(question, verify=verify, source_ids=source_ids, demo=mode == "synthetic"))
+    except ValueError as exc:
+        return _json_response({"error": str(exc)}, 400)
     except Exception:
         return _json_response({"error": "The research workflow could not complete."}, 500)
 
