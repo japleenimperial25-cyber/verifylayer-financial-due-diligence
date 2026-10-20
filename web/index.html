@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102c2b"><title>VerifyLayer | Evidence behind every decision</title>
+  <script>if (location.protocol === "file:") document.documentElement.dataset.localFile = "true";</script>
+  <style>
+    html[data-local-file="true"] body{min-height:100vh;margin:0;padding:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#f4f7f5;color:#142b2b;font:16px/1.6 "Segoe UI",Arial,sans-serif;text-align:center}
+    html[data-local-file="true"] body>*{display:none!important}
+    html[data-local-file="true"] body::before{content:"VerifyLayer needs its Python website server";font-size:26px;font-weight:700}
+    html[data-local-file="true"] body::after{content:"Open PowerShell in the project folder and run:  python website.py  ·  Then visit https://localhost:8443";max-width:700px;color:#50665d}
+  </style>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="sidebar site-header">
+    <a class="brand" href="#dashboard"><span class="brand-mark">V</span><span>VerifyLayer<small>RESEARCH SYSTEM</small></span></a>
+    <nav id="navigation">
+      <a class="nav-link active" href="#dashboard"><span><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg></span> Dashboard</a>
+      <a class="nav-link" href="#research"><span><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></span> Research</a>
+      <a class="nav-link" href="#evidence"><span><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 3v5c0 5-3.4 8.1-8 10-4.6-1.9-8-5-8-10V6z"/><path d="m8.5 12 2.3 2.3 4.8-5"/></svg></span> Evidence verification</a>
+      <a class="nav-link" href="#evaluation"><span><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11M10 20V5M16 20v-7M22 20H2"/></svg></span> OFF vs ON evaluation</a>
+      <a class="nav-link" href="#sources"><span><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2z"/><path d="M5 17a2 2 0 0 1 2-2h12M9 8h6M9 11h6"/></svg></span> Sources</a>
+      <a class="nav-link" href="#reports"><span><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span> Reports</a>
+    </nav>
+  </header>
+  <main>
+    <div class="content">
+      <section id="dashboard" class="view active">
+        <div class="hero"><div><div class="eyebrow">AI-POWERED INVESTMENT VERIFICATION & DUE DILIGENCE</div><h1>Evidence behind<br>every investment decision.</h1><p class="hero-copy">A citation-grounded research prototype designed to make financial claims traceable, reviewable, and accountable.</p><a class="button button-light" href="#research">Start a research review <span>→</span></a></div><div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit-core">V<span>✓</span></div><i class="node node-one">01</i><i class="node node-two">02</i><i class="node node-three">03</i></div></div>
+        <div class="notice"><span class="notice-icon" aria-hidden="true">i</span><div><strong id="research-status-title">Research status: loading saved evaluation label</strong><p id="research-status" role="status" aria-live="polite">Loading project status…</p></div><span class="badge badge-amber">NOT EMPIRICAL</span></div>
+        <div class="section-heading"><div><div class="eyebrow">SYSTEM OVERVIEW</div><h2>Verification at a glance</h2></div><span class="subtle">Live values from local project records</span></div>
+        <div class="metric-grid" id="dashboard-metrics"></div>
+        <p class="subtle">Dashboard cards and layer descriptions explain system status and method; they are not issuer research claims.</p>
+        <div class="section-heading layer-heading"><div><div class="eyebrow">THE VERIFICATION PIPELINE</div><h2>Five layers. One evidence trail.</h2></div><span class="subtle">Original system architecture</span></div>
+        <div class="layer-grid" id="layers"></div>
+        <div class="bottom-note"><strong>Academic use only.</strong> VerifyLayer is not investment advice. The current evaluation demonstrates deterministic claim blocking on synthetic data; it does not establish real-world hallucination reduction.</div>
+      </section>
+      <section id="research" class="view">
+        <div class="page-heading"><div class="eyebrow">L4 · COMMENTARY & VERIFICATION</div><h1>Research review</h1><p>Submit a question to the local VerifyLayer workflow. The system retrieves registered passages or runs its labeled synthetic failure demonstration.</p></div>
+        <div class="panel research-panel"><form id="research-form"><label for="question">Financial research question</label><textarea id="question" rows="3" placeholder="e.g. What evidence is available about the company's FY2025 revenue?" required></textarea><div class="form-row"><div><label for="source-mode">Evidence corpus</label><select id="source-mode"><option value="registered">Registered source documents</option><option value="synthetic">Synthetic failure demonstration</option></select></div><div><label for="verification-mode">Verification gate</label><select id="verification-mode"><option value="on">ON — block unsupported claims</option><option value="off">OFF — show all proposals with labels</option></select></div><button class="button button-primary" type="submit">Run verification <span>→</span></button></div><p class="form-hint">No language model is connected. This runs the existing deterministic local retrieval and claim-checking rules.</p></form></div>
+        <div id="research-result" class="result-area empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></div><strong>Ready for a research question</strong><span>Results will include claim decisions, citations, and retrieved passages.</span></div>
+      </section>
+      <section id="evidence" class="view">
+        <div class="page-heading"><div class="eyebrow">CLAIM-LEVEL TRACEABILITY</div><h1>Evidence verification</h1><p>Review the latest research run. Each claim is linked to cited extracted text and carries the verifier's status and reason.</p></div>
+        <div id="evidence-result" class="result-area empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 3v5c0 5-3.4 8.1-8 10-4.6-1.9-8-5-8-10V6z"/><path d="m8.5 12 2.3 2.3 4.8-5"/></svg></div><strong>No research run yet</strong><span>Submit a question in Research to see its evidence trail.</span><a class="button button-primary" href="#research">Go to Research</a></div>
+      </section>
+      <section id="evaluation" class="view">
+        <div class="page-heading"><div class="eyebrow">CONTROLLED COMPARISON</div><h1>Verification OFF vs ON</h1><p>Both conditions use the same saved questions and underlying evidence. Metrics below are recalculated by the existing Python evaluation engine.</p></div>
+        <div class="notice"><span class="notice-icon">!</span><div><strong id="eval-method-label">Loading evaluation method…</strong><p id="eval-method-detail">No live model is connected. This comparison does not establish empirical performance.</p></div><span class="badge badge-amber">DEMONSTRATION</span></div>
+        <div class="evaluation-cards" id="evaluation-cards"><div class="loading-card">Calculating from saved question set…</div></div>
+        <div class="panel chart-panel"><div class="chart-title"><h2>Hallucination rate by condition</h2><span>Calculated from Python evaluation metrics</span></div><div id="comparison-chart" class="comparison-chart" role="img" aria-label="Hallucination rate comparison chart"><p>Loading calculated values…</p></div></div>
+        <div id="comparison-summary" class="comparison-summary"></div>
+        <div class="table-wrap"><table id="evaluation-table"><caption>Calculated evaluation measures</caption><thead><tr><th scope="col">Measurement</th><th scope="col">Verification OFF</th><th scope="col">Verification ON</th></tr></thead><tbody></tbody></table></div>
+        <div class="section-heading"><div><div class="eyebrow">SAME QUESTION SET</div><h2>Evaluation questions & decisions</h2></div></div><div id="evaluation-details"></div>
+        <p class="disclaimer">Results demonstrate deterministic verification rules only. They are not empirical LLM performance or evidence of expected real-world impact.</p>
+      </section>
+      <section id="sources" class="view">
+        <div class="page-heading"><div class="eyebrow">L1 INGEST · L2 EXTRACT</div><h1>Sources & provenance</h1><p>Registry metadata is read from <code>sources.csv</code>. Documents are only listed after successful registration.</p></div>
+        <div class="panel source-summary"><div class="source-count" id="source-count">—</div><div><strong>Registered source documents</strong><p>Provenance includes title, publisher, publication date when known, source URL, retrieval/recording times, reporting period, origin, and SHA-256 digest where available.</p></div></div>
+        <div id="source-list" class="source-list"></div>
+        <div id="source-empty" class="empty-state compact"><strong>No sources are preloaded.</strong><span>Register a local filing using the documented <code>ingest.py</code> command, then extract it to make evidence available for retrieval.</span></div>
+      </section>
+      <section id="reports" class="view">
+        <div class="page-heading"><div class="eyebrow">L5 · OUTPUT & GOVERNANCE</div><h1>Reports & governance</h1><p>Read the saved evaluation annexure and governance assumptions from the existing project artifacts.</p></div>
+        <div class="report-grid"><article class="panel report-card"><div class="report-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></svg></div><div class="eyebrow">GENERATED ANNEXURE</div><h2>Evaluation report</h2><p>Saved report generated from the recorded questions, evidence, claim decisions, and Python-calculated metrics. Its label and limitations come from the saved evaluation.</p><a class="button button-primary" href="/api/report" target="_blank" rel="noreferrer">Open report <span>↗</span></a></article><article class="panel report-card"><div class="report-icon governance-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></div><div class="eyebrow">PROJECT DOCUMENTATION</div><h2>Governance & assumptions</h2><p>Intended use, verification rules, calculation assumptions, evaluation definitions, and data limitations.</p><a class="button button-secondary" href="/api/governance" target="_blank" rel="noreferrer">Read governance <span>↗</span></a></article><article class="panel report-card"><div class="report-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></div><div class="eyebrow">SAVED DATA</div><h2>Evaluation records</h2><p>Download the existing question set, evidence passages, claim decisions, and calculated metrics.</p><a class="button button-secondary" href="/api/records" download="evaluation_records.json">Download records <span>↓</span></a></article></div>
+        <div class="notice report-disclosure"><span class="notice-icon">i</span><div><strong>Report status</strong><p id="report-disclosure-text">Loading report label from saved Python evaluation records…</p></div></div>
+      </section>
+      <footer>VERIFYLAYER <span>·</span> PGDM FINANCE CAPSTONE <span>·</span> EDUCATIONAL PROTOTYPE ONLY</footer>
+    </div>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
